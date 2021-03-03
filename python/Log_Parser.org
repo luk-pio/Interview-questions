@@ -1,0 +1,58 @@
+#+TITLE: Log_parser
+
+* Question
+You receive a string that contains an XML log file like the following:
+#+begin_src xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<log>
+    <entry id="1">
+        <message>Application started</message>
+    </entry>
+    <entry id="2">
+        <message>Application ended</message>
+    </entry>
+</log>
+
+#+end_src
+
+Implement a function ids_by_message that returns the ids of the entries that contain a specific message. The ids should be integer values and the array does not need to be sorted.
+
+For example, ids_by_message for the XML log above and for the message "Application ended" should return [ 2 ].
+* Solution
+#+begin_src python
+import xml.etree.ElementTree as ET
+
+def ids_by_message(xml, message):
+    def rec_get_ids_by_msg(node, message):
+        if node is None: return None
+        if node.tag == "entry":
+            if message in [child.text for child in node if child.tag == "message"]: 
+                try:
+                    return [int(node.attrib.get("id", None))]
+                except:
+                    return None
+        ids = []
+        for child in node:
+            child_ids = rec_get_ids_by_msg(child, message)
+            if child_ids is not None:
+                ids.extend(child_ids)
+        return ids
+
+    return rec_get_ids_by_msg(ET.fromstring(xml), message)
+
+xml = """<?xml version="1.0" encoding="UTF-8"?>
+<log>
+    <entry id="1">
+        <message>Application started</message>
+    </entry>
+    <entry id="2">
+        <message>Application ended</message>
+    </entry>
+</log>"""
+res = ids_by_message(xml, 'Application ended')
+print(res)
+return res
+#+end_src
+
+#+RESULTS:
+| 2 |
