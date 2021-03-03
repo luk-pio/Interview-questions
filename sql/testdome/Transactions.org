@@ -1,0 +1,55 @@
+#+TITLE: Transactions
+
+* Example case
+-- Suggested testing environment:
+-- http://sqlite.online/
+
+-- Example case create statement:
+#+begin_src sql
+CREATE TABLE customers (
+  id INTEGER NOT NULL PRIMARY KEY,
+  name VARCHAR(30) NOT NULL
+);
+
+CREATE TABLE transactions (
+  id INTEGER NOT NULL PRIMARY KEY,
+  customerId INTEGER REFERENCES customers(id),
+  amount DECIMAL(15,2) NOT NULL
+);
+
+INSERT INTO customers(id, name) VALUES(1, 'Steve');
+INSERT INTO customers(id, name) VALUES(2, 'Jeff');
+INSERT INTO transactions(id, customerId, amount) VALUES(1, 1, 100);
+
+#+end_src
+
+-- Expected output (in any order):
+-- name     transactions
+-- -------------------------------
+-- Steve    1
+-- Jeff     0
+
+-- Explanation:
+-- In this example.
+-- There are two customers, Steve and Jeff.
+-- Steve has made one transaction. Jeff has made zero transactions.
+* Question
+Given the following data definition, write a query that selects all customer names together with the number of transactions that they made. Customers with no transactions should be included as customers with 0 transactions.
+#+begin_src sql
+TABLE customers
+  id INTEGER NOT NULL PRIMARY KEY
+  name VARCHAR(30) NOT NULL
+
+TABLE transactions
+  id INTEGER NOT NULL PRIMARY KEY
+  customerId INTEGER REFERENCES customers(id)
+  amount DECIMAL(15,2) NOT NULL
+#+end_src
+* Answer
+#+begin_src sql
+select name, count(amount) from customers as c
+left join transactions as t on c.id == t.customerId
+group by c.id;
+#+end_src
+** Notes
+The group by is needed for the count to return 0 instead of skipping the rows with null values entirely.
